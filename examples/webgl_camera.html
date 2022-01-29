@@ -44,6 +44,14 @@
 			let cameraPerspective, cameraOrtho;
 			let cameraPerspectiveHelper, cameraOrthoHelper;
 			const frustumSize = 600;
+			const axesHelper = new THREE.AxesHelper(500);
+
+			const cameraAxesHelper = new THREE.AxesHelper(500);
+			
+			let counter = 0;
+			let rotate_x = 0;
+			let rotate_y = 0;
+			let rotate_z = 0;
 
 			init();
 			animate();
@@ -56,8 +64,14 @@
 				scene = new THREE.Scene();
 
 				//
+				scene.add(axesHelper);
 
-				camera = new THREE.PerspectiveCamera( 50, 0.5 * aspect, 1, 10000 );
+				//
+
+
+				//
+
+				camera = new THREE.PerspectiveCamera( 50, 0.5 * aspect, 20, 100000 );				
 				camera.position.z = 2500;
 
 				cameraPerspective = new THREE.PerspectiveCamera( 50, 0.5 * aspect, 150, 1000 );
@@ -83,9 +97,11 @@
 				cameraPerspective.rotation.y = Math.PI;
 
 				cameraRig = new THREE.Group();
-
+				// cameraRig.lookAt( 0, 0, 1);
 				cameraRig.add( cameraPerspective );
 				cameraRig.add( cameraOrtho );
+
+				cameraRig.attach(cameraAxesHelper);
 
 				scene.add( cameraRig );
 
@@ -104,12 +120,12 @@
 				mesh2.position.y = 150;
 				mesh.add( mesh2 );
 
-				const mesh3 = new THREE.Mesh(
-					new THREE.SphereGeometry( 5, 16, 8 ),
-					new THREE.MeshBasicMaterial( { color: 0x0000ff, wireframe: true } )
-				);
-				mesh3.position.z = 150;
-				cameraRig.add( mesh3 );
+				// const mesh3 = new THREE.Mesh(
+				// 	new THREE.SphereGeometry( 5, 16, 8 ),
+				// 	new THREE.MeshBasicMaterial( { color: 0x0000ff, wireframe: true } )
+				// );
+				// mesh3.position.z = 150;
+				// cameraRig.add( mesh3 );
 
 				//
 
@@ -154,23 +170,74 @@
 
 			function onKeyDown( event ) {
 
-				switch ( event.keyCode ) {
-
-					case 79: /*O*/
+				switch ( event.key ) {
+					case 'o': /*O*/
 
 						activeCamera = cameraOrtho;
 						activeHelper = cameraOrthoHelper;
 
 						break;
 
-					case 80: /*P*/
+					case 'p': /*P*/
 
 						activeCamera = cameraPerspective;
 						activeHelper = cameraPerspectiveHelper;
 
 						break;
+					
+					case 'X':
+						cameraRig.position.x += 50
+						break;
+					case 'Y':
+						cameraRig.position.y += 50
+						break;
+					case 'Z':
+						cameraRig.position.z += 50
+						break;
+					
+
+					case 'x':
+						cameraRig.position.x -= 50
+						break;
+					case 'y':
+						cameraRig.position.y -= 50
+						break;
+					case 'z':
+						cameraRig.position.z -= 50
+						break;
+					
+					case 'a':
+						rotate_x = 0.1;
+						rotate_y = 0;
+						rotate_z = 0;
+						break;						break;
+					case 'b':
+						rotate_x = 0;
+						rotate_y = 0.1;
+						rotate_z = 0;
+						
+						break;
+					case 'c':
+						rotate_x = 0;
+						rotate_y = 0;
+						rotate_z = 0.1;
+						
+						break;
+					
+					case 'd':
+						rotate_x = 0;
+						rotate_y = 0;
+						rotate_z = 0;
+						
+						break;
+					
+					
+					
+
 
 				}
+				window.console.log(event.key)
+				window.console.log (cameraRig.position)	
 
 			}
 
@@ -183,7 +250,7 @@
 				aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
 
 				renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
-
+				
 				camera.aspect = 0.5 * aspect;
 				camera.updateProjectionMatrix();
 
@@ -214,16 +281,22 @@
 
 				const r = Date.now() * 0.0005;
 
-				mesh.position.x = 700 * Math.cos( r );
-				mesh.position.z = 700 * Math.sin( r );
-				mesh.position.y = 700 * Math.sin( r );
+				mesh.position.x = 700;
+				mesh.position.z = 700;
+				mesh.position.y = 700;
 
-				mesh.children[ 0 ].position.x = 70 * Math.cos( 2 * r );
-				mesh.children[ 0 ].position.z = 70 * Math.sin( r );
+				
+
+				// mesh.position.x = 700 * Math.cos( r );
+				// mesh.position.z = 700 * Math.sin( r );
+				// mesh.position.y = 700 * Math.sin( r );
+
+				// mesh.children[ 0 ].position.x = 70 * Math.cos( 2 * r );
+				// mesh.children[ 0 ].position.z = 70 * Math.sin( r );
 
 				if ( activeCamera === cameraPerspective ) {
 
-					cameraPerspective.fov = 35 + 30 * Math.sin( 0.5 * r );
+					// cameraPerspective.fov = 35 + 30 * Math.sin( 0.5 * r );
 					cameraPerspective.far = mesh.position.length();
 					cameraPerspective.updateProjectionMatrix();
 
@@ -244,7 +317,21 @@
 
 				}
 
-				cameraRig.lookAt( mesh.position );
+				// cameraRig.lookAt( mesh.position );
+				// cameraRig.lookAt( -1,1,1 );
+				// cameraRig.rotation.x +=0.02;
+				
+				counter += 1;
+				
+				if (counter == 5){
+					counter = 0
+					// cameraRig.rotateOnAxis('X',0.25* rotate_x)
+					// cameraRig.rotateOnAxis('Y',0.25* rotate_y)
+					// cameraRig.rotateOnAxis('Z',0.25* rotate_z)	
+					cameraRig.rotateX(0.25*rotate_x);
+					cameraRig.rotateY(0.25*rotate_y);
+					cameraRig.rotateZ(0.25*rotate_z);
+				}
 
 				renderer.clear();
 
