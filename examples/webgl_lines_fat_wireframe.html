@@ -89,7 +89,22 @@
 				wireframe = new Wireframe( geometry, matLine );
 				wireframe.computeLineDistances();
 				wireframe.scale.set( 1, 1, 1 );
-				scene.add( wireframe );
+
+				// scene.add( wireframe );
+
+				const axesHelper = new THREE.AxesHelper(50);
+				scene.add(axesHelper);
+
+
+				const k4a_geometry = new THREE.BoxGeometry( 1, 0.60, 2.5 );
+				const k4a_material = new THREE.MeshBasicMaterial( {color: 0x00af00} );
+				const k4a_cube = new THREE.Mesh( k4a_geometry, k4a_material );
+
+				k4a_cube.position.set(-0.3, -0.45, 0);
+
+				scene.add( k4a_cube );
+				
+
 
 
 				// Line ( THREE.WireframeGeometry, THREE.LineBasicMaterial ) - rendered with gl.LINE
@@ -102,7 +117,7 @@
 				wireframe1 = new THREE.LineSegments( geo, matLineBasic );
 				wireframe1.computeLineDistances();
 				wireframe1.visible = false;
-				scene.add( wireframe1 );
+				// scene.add( wireframe1 );
 
 				//
 
