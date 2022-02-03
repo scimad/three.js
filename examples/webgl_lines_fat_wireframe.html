@@ -36,12 +36,18 @@
 			import { LineMaterial } from './jsm/lines/LineMaterial.js';
 			import { Wireframe } from './jsm/lines/Wireframe.js';
 			import { WireframeGeometry2 } from './jsm/lines/WireframeGeometry2.js';
+			import { MTLLoader } from './jsm/loaders/MTLLoader.js';
+			import { OBJLoader } from './jsm/loaders/OBJLoader.js';
+
 
 			let wireframe, renderer, scene, camera, camera2, controls;
 			let wireframe1;
 			let matLine, matLineBasic, matLineDashed;
 			let stats;
 			let gui;
+			let parent, k4a_object;
+			let k4a_axes;
+			let h_angle, v_angle;
 
 			// viewport
 			let insetWidth;
@@ -61,14 +67,26 @@
 				scene = new THREE.Scene();
 
 				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.set( - 50, 0, 50 );
+				camera.position.set( - 100, 0, 100 );
 
-				camera2 = new THREE.PerspectiveCamera( 40, 1, 1, 1000 );
-				camera2.position.copy( camera.position );
+
+
+				const ambientLight = new THREE.AmbientLight( 0x0cc0cc, 0.02 );
+				scene.add( ambientLight );
+
+				const pointLight = new THREE.PointLight( 0xffffff, 0.8 );
+				pointLight.position.x = 100;
+				pointLight.position.y = -100;
+
+				camera.add( pointLight );
+				scene.add( camera );
+
+				// camera2 = new THREE.PerspectiveCamera( 40, 1, 1, 1000 );
+				// camera2.position.copy( camera.position );
 
 				controls = new OrbitControls( camera, renderer.domElement );
-				controls.minDistance = 10;
-				controls.maxDistance = 500;
+				controls.minDistance = 0.1;
+				controls.maxDistance = 5000;
 
 
 				// Wireframe ( WireframeGeometry2, LineMaterial )
@@ -92,34 +110,71 @@
 
 				// scene.add( wireframe );
 
-				const axesHelper = new THREE.AxesHelper(50);
+				const axesHelper = new THREE.AxesHelper(100);
 				scene.add(axesHelper);
 
+				//Dimensions: 103 x 39 x 126 mm
+				// const k4a_geometry = new THREE.BoxGeometry( 103, 39, 126 );
+				// // k4a_geometry.translate( distX, distY, distZ );
+				// const k4a_material = new THREE.MeshBasicMaterial( {color: 0x00af00} );
+				// const k4a_cube = new THREE.Mesh( k4a_geometry, k4a_material );
+				// scene.add( k4a_cube );
 
-				const k4a_geometry = new THREE.BoxGeometry( 1, 0.60, 2.5 );
-				const k4a_material = new THREE.MeshBasicMaterial( {color: 0x00af00} );
-				const k4a_cube = new THREE.Mesh( k4a_geometry, k4a_material );
+				{// model
+					const onProgress = function ( xhr ) {
 
-				k4a_cube.position.set(-0.3, -0.45, 0);
+					if ( xhr.lengthComputable ) {
 
-				scene.add( k4a_cube );
-				
+						const percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( Math.round( percentComplete, 2 ) + '% downloaded' );
+
+					}
+
+					};
+
+					new MTLLoader()
+					.setPath( 'models/obj/k4a/' )
+					.load( 'k4a.mtl', function ( materials ) {
+
+						materials.preload();
+
+						new OBJLoader()
+							.setMaterials( materials )
+							.setPath( 'models/obj/k4a/' )
+							.load( 'k4a.obj', function ( object ) {
+								k4a_object = object;
+								var v = new THREE.Vector3(0, -7.877, 35.803);
+
+								k4a_axes = new THREE.AxesHelper(40);
+
+
+								k4a_object.translateX(0);
+								k4a_object.translateY(-7.877);
+								k4a_object.translateZ(35.803);
+
+								k4a_axes.translateX(0);
+								k4a_axes.translateY(-7.877);
+								k4a_axes.translateZ(35.803);
+								k4a_object.attach (k4a_axes);
 
 
 
-				// Line ( THREE.WireframeGeometry, THREE.LineBasicMaterial ) - rendered with gl.LINE
 
-				geo = new THREE.WireframeGeometry( geo );
+								console.log(k4a_object.position.x, k4a_object.position.y, k4a_object.position.z);
+								// k4a_object.rotation.z = Math.PI;
+								
+								scene.add( k4a_object );
+								// scene.add( k4a_axes );
 
-				matLineBasic = new THREE.LineBasicMaterial( { color: 0x4080ff } );
-				matLineDashed = new THREE.LineDashedMaterial( { scale: 2, dashSize: 1, gapSize: 1 } );
+							}, onProgress );
 
-				wireframe1 = new THREE.LineSegments( geo, matLineBasic );
-				wireframe1.computeLineDistances();
-				wireframe1.visible = false;
-				// scene.add( wireframe1 );
+					} );
+				}
 
-				//
+				// const test_geometry = new THREE.BoxGeometry( 1, 1, 1 );
+				// const test_material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+				// const test_mesh = new THREE.Mesh( test_geometry, test_material );
+				// scene.add( test_mesh );
 
 				window.addEventListener( 'resize', onWindowResize );
 				onWindowResize();
@@ -141,49 +196,18 @@
 				insetWidth = window.innerHeight / 4; // square
 				insetHeight = window.innerHeight / 4;
 
-				camera2.aspect = insetWidth / insetHeight;
-				camera2.updateProjectionMatrix();
-
 			}
 
 			function animate() {
-
+				if (k4a_object){
+					k4a_object.rotation.y += 0.01;
+				}
 				requestAnimationFrame( animate );
-
 				stats.update();
-
-				// main scene
-
 				renderer.setClearColor( 0x000000, 0 );
-
-				renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
-
-				// renderer will set this eventually
-				matLine.resolution.set( window.innerWidth, window.innerHeight ); // resolution of the viewport
-
 				renderer.render( scene, camera );
-
-				// inset scene
-
 				renderer.setClearColor( 0x222222, 1 );
-
 				renderer.clearDepth(); // important!
-
-				renderer.setScissorTest( true );
-
-				renderer.setScissor( 20, 20, insetWidth, insetHeight );
-
-				renderer.setViewport( 20, 20, insetWidth, insetHeight );
-
-				camera2.position.copy( camera.position );
-				camera2.quaternion.copy( camera.quaternion );
-
-				// renderer will set this eventually
-				matLine.resolution.set( insetWidth, insetHeight ); // resolution of the inset viewport
-
-				renderer.render( scene, camera2 );
-
-				renderer.setScissorTest( false );
 
 			}
 
